@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE project [
+]>
+
+<project name="E2ESeleniumTests" default="usage" basedir=".">  
+
+<!--
+	$HeadURL: https://svn.ingenico.com/SPO/Dev/TAM/trunk/build.xml $
+	$Id: build.xml 11503 2014-12-05 14:38:38Z gkondracki $
+-->
+
+<!-- ========== Initialize Properties =================================== -->
+    <property name="home.dir" value="${basedir}"/>
+	<property name="external.dir" value="${home.dir}/external"/>
+    <property name="build.dir" value="${home.dir}/build"/>
+    <property name="src.dir" value="${home.dir}/src"/>
+	<property name="result.dir" value="${home.dir}/test-output"/>
+	<!-- <property name="screenshots.dir" value="${home.dir}/screenshots"/> -->
+	<!-- <property name="rythmoutfile.yml" value="${home.dir}/data/testdata_rythm.yml"/> -->
+	<property name="project.jar" value="${home.dir}/${ant.project.name}.jar"/>
+		
+    <target name="setClassPath">
+        <path id="classpath_jars">
+            <fileset dir="${external.dir}/dom4j" includes="*.jar"/>
+			<fileset dir="${external.dir}/jyaml" includes="*.jar"/>
+			<fileset dir="${external.dir}/opencsv" includes="*.jar"/>
+			<fileset dir="${external.dir}/postgresql" includes="*.jar"/>
+			<fileset dir="${external.dir}/rythm" includes="*.jar"/>
+			<fileset dir="${external.dir}/selenium" includes="*.jar"/>
+			<fileset dir="${external.dir}/commonsio" includes="*.jar"/>
+        	<fileset dir="${external.dir}/log4j" includes="*.jar"/>
+        	<fileset dir="${external.dir}/jsch" includes="*.jar"/>
+		</path>
+        <pathconvert pathsep=":" 
+            property="test.classpath" 
+            refid="classpath_jars"/>
+    </target>
+    
+	<!--   <target name="cleanRun">
+    	<delete dir="${result.dir}"/>
+    	<delete dir="${screenshots.dir}"/>  
+    </target> -->
+
+    <target name="clean" >
+        <delete dir="${build.dir}"/>
+    	<delete file="${project.jar}"/>
+    	<!-- <delete file="${rythmoutfile.yml}"/> -->
+    </target>
+    
+    <target name="compile" depends="setClassPath,clean" > 
+        <echo message="making directory..."/>
+		<mkdir dir="${build.dir}"/>
+        <echo message="classpath: ${test.classpath}"/>
+        <echo message="compiling..."/>
+        <javac includeantruntime="false"
+        	encoding="iso-8859-1"
+            destdir="${build.dir}" 
+            srcdir="${src.dir}" 
+            classpath="${test.classpath}"  >
+        </javac>
+      </target>
+
+     <target name="jar" depends="compile">
+        <mkdir dir="${external.dir}"/>
+        <jar destfile="${project.jar}" basedir="${build.dir}">
+        </jar>
+    </target> 
+
+    
+<!-- 
+Ant is not used for execution of tests; testng is launched directly after build
+-->
+    <target name="run" depends="setClassPath, compile">
+        <taskdef name="testng" classpath="${test.classpath}"
+               classname="org.testng.TestNGAntTask" />
+        <testng classpath="${test.classpath}:${build.dir}">	
+            <xmlfileset dir="${home.dir}" includes="suites/All.xml"/>
+        </testng>
+    </target>
+
+  
+    <target name="usage">
+       <echo>
+clean: removes testng outputs, build and generated jar
+jar: generates jar out of the compilation
+run: cleans, compiles and runs ./suites/All.xml
+       </echo>
+    </target>
+	
+</project>
